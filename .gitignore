@@ -1,0 +1,6 @@
+__pycache__
+.ruff_cache/
+.env
+.lastfm_cache
+.DS_Store
+*.csv

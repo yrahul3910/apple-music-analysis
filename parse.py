@@ -1,9 +1,10 @@
+import argparse
 import datetime
 import warnings
 
 import pandas as pd
 
-from get_album import parse_unknown_taylor_albums
+from get_album import CACHE_HIT, parse_unknown_album
 
 CSV_FILE_NAME = 'Apple Music Play Activity.csv'
 CONTAINER_FILE_NAME = 'Apple Music - Container Details.csv'
@@ -20,19 +21,29 @@ DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 START_DATE = datetime.datetime(
     2023, 1, 1, 0, 0, 0).astimezone(datetime.timezone.utc)
 
+# Cache stats
+cache_hits = 0
+cache_misses = 0
+
 
 def get_artist(album: str) -> str:
     """
     Returns the artist for a given album, based on a partial match in CONTAINER_FILE_NAME
     """
+    global cache_hits, cache_misses
+
     df = pd.read_csv(CONTAINER_FILE_NAME)
     df = df.dropna(how='any', subset=['Container Description'])
     df = df[df['Container Description'].str.contains(album, regex=False)]
 
     if len(df) == 0:
-        artist = parse_unknown_taylor_albums(album)
-        if len(artist) == 0:
-            print(album)
+        artist, cache_status = parse_unknown_album(album)
+        
+        if cache_status == CACHE_HIT:
+            cache_hits += 1
+        else:
+            cache_misses += 1
+
         return pprint_artists(artist)
 
     return pprint_artists(tuple(df['Artists'].values[0].split(', ')))
@@ -53,6 +64,12 @@ def pprint_artists(artists: tuple) -> str:
 
 if __name__ == '__main__':
     warnings.filterwarnings('ignore')
+
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', action='store_true')
+    args = parser.parse_args()
+
     df = pd.read_csv(CSV_FILE_NAME)
 
     # Filter columns of interest
@@ -118,3 +135,7 @@ if __name__ == '__main__':
     }).head(10)
     print('Top 10 songs by play time:')
     print(top_songs_df)
+
+    if args.debug:
+        print()
+        print('Cache hit%:', round(cache_hits / (cache_hits + cache_misses) * 100, 1))

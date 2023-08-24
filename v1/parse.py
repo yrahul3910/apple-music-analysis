@@ -4,54 +4,62 @@ import warnings
 
 import pandas as pd
 
-from get_album import CACHE_HIT, get_album_cached
+from v1.get_album import CACHE_HIT, parse_unknown_album
 
-CSV_FILE_NAME = 'Apple Music - Play History Daily Tracks.csv'
+CSV_FILE_NAME = 'Apple Music Play Activity.csv'
+CONTAINER_FILE_NAME = 'Apple Music - Container Details.csv'
+ALBUM_COLUMN = 'Album Name'
 PLAY_DURATION_COLUMN = 'Play Duration Milliseconds'
-SONG_COLUMN = 'Track Description'
-DATE_COLUMN = 'Date Played'
+SONG_COLUMN = 'Song Name'
+DATE_COLUMN = 'Event End Timestamp'
 
 ALL_COLUMNS = [v for k, v in list(locals().items()) if k.endswith('_COLUMN')]
 
 # Hyper-parameters
 INSUFFICIENT_DURATION_MILLIS = 10000
-DATE_FORMAT = '%Y%m%d'
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 START_DATE = datetime.datetime(
-    2023, 1, 1, 0, 0, 0)
+    2023, 1, 1, 0, 0, 0).astimezone(datetime.timezone.utc)
 
 # Cache stats
 cache_hits = 0
 cache_misses = 0
 
 
-def get_title(track: str) -> str:
-    '''
-    Returns the title of a track, without the artist
-    '''
-    if '-' not in track:
-        return track
-
-    return ' - '.join(track.split(' - ')[1:]).strip()
-
-
-def get_artist(track: str) -> str:
-    '''
-    Returns the artist for a given track
-    '''
-    return track.split(' - ')[0].strip()
-
-
-def get_album(track: str) -> str:
+def get_artist(album: str) -> str:
+    """
+    Returns the artist for a given album, based on a partial match in CONTAINER_FILE_NAME
+    """
     global cache_hits, cache_misses
 
-    album, cache_status = get_album_cached(track)
-        
-    if cache_status == CACHE_HIT:
-        cache_hits += 1
-    else:
-        cache_misses += 1
+    df = pd.read_csv(CONTAINER_FILE_NAME)
+    df = df.dropna(how='any', subset=['Container Description'])
+    df = df[df['Container Description'].str.contains(album, regex=False)]
 
-    return album
+    if len(df) == 0:
+        artist, cache_status = parse_unknown_album(album)
+        
+        if cache_status == CACHE_HIT:
+            cache_hits += 1
+        else:
+            cache_misses += 1
+
+        return pprint_artists(artist)
+
+    return pprint_artists(tuple(df['Artists'].values[0].split(', ')))
+
+
+def pprint_artists(artists: tuple) -> str:
+    """
+    Pretty prints a tuple of artists
+    """
+    if len(artists) == 0:
+        return 'Unknown'
+    
+    if len(artists) > 3:
+        return ', '.join(artists[:3]) + ', ...'
+
+    return ', '.join(artists)
 
 
 if __name__ == '__main__':
@@ -79,14 +87,7 @@ if __name__ == '__main__':
 
     # Add in the artist column
     ARTIST_COLUMN = 'Artist'
-    df[ARTIST_COLUMN] = df[SONG_COLUMN].apply(get_artist)
-
-    # Add in the album column
-    ALBUM_COLUMN = 'Album'
-    df[ALBUM_COLUMN] = df[SONG_COLUMN].apply(get_album)
-
-    # Remove artist from the track name
-    df[SONG_COLUMN] = df[SONG_COLUMN].apply(get_title)
+    df[ARTIST_COLUMN] = df[ALBUM_COLUMN].apply(get_artist)
 
     print('Songs played: ', len(df))
     print('Last date: ', df[DATE_COLUMN].max().strftime('%Y-%m-%d'))

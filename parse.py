@@ -109,6 +109,14 @@ if __name__ == '__main__':
     print(top_artists_df)
     print()
 
+    # Get Taylor Swift play time
+    y = artist_play_time['Taylor Swift'] / 60000
+    z = total_play_time / 60000
+    k = 0.9
+    # Minutes needed to hit 90% of Taylor Swift play time: (kz - y) / (1 - k)
+    print('Minutes needed to hit 90% of Taylor Swift play time: ', round((k * z - y) / (1 - k), 1))
+    print()
+
     # Find the top 5 albums by play time
     album_play_time = df.groupby([ARTIST_COLUMN, ALBUM_COLUMN])[
         PLAY_DURATION_COLUMN].sum()

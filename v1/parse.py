@@ -4,7 +4,7 @@ import warnings
 
 import pandas as pd
 
-from v1.get_album import CACHE_HIT, parse_unknown_album
+from get_album import CACHE_HIT, parse_unknown_album
 
 CSV_FILE_NAME = 'Apple Music Play Activity.csv'
 CONTAINER_FILE_NAME = 'Apple Music - Container Details.csv'
@@ -38,7 +38,7 @@ def get_artist(album: str) -> str:
 
     if len(df) == 0:
         artist, cache_status = parse_unknown_album(album)
-        
+
         if cache_status == CACHE_HIT:
             cache_hits += 1
         else:
@@ -55,7 +55,7 @@ def pprint_artists(artists: tuple) -> str:
     """
     if len(artists) == 0:
         return 'Unknown'
-    
+
     if len(artists) > 3:
         return ', '.join(artists[:3]) + ', ...'
 
@@ -110,6 +110,14 @@ if __name__ == '__main__':
     print(top_artists_df)
     print()
 
+    # Get Taylor Swift play time
+    y = artist_play_time['Taylor Swift'] / 60000
+    z = total_play_time / 60000
+    k = 0.9
+    # Minutes needed to hit 90% of Taylor Swift play time: (kz - y) / (1 - k)
+    print('Minutes needed to hit 90% of Taylor Swift play time: ', round((k * z - y) / (1 - k), 1))
+    print()
+
     # Find the top 5 albums by play time
     album_play_time = df.groupby([ARTIST_COLUMN, ALBUM_COLUMN])[
         PLAY_DURATION_COLUMN].sum()
@@ -138,4 +146,5 @@ if __name__ == '__main__':
 
     if args.debug:
         print()
-        print('Cache hit%:', round(cache_hits / (cache_hits + cache_misses) * 100, 1))
+        print('Cache hit%:', round(cache_hits /
+              (cache_hits + cache_misses) * 100, 1))

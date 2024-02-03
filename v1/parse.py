@@ -3,6 +3,7 @@ import datetime
 import warnings
 
 import pandas as pd
+from colorama import init, Fore
 
 from get_album import CACHE_HIT, parse_unknown_album
 
@@ -16,10 +17,10 @@ DATE_COLUMN = 'Event End Timestamp'
 ALL_COLUMNS = [v for k, v in list(locals().items()) if k.endswith('_COLUMN')]
 
 # Hyper-parameters
-INSUFFICIENT_DURATION_MILLIS = 10000
+INSUFFICIENT_DURATION_MILLIS = 15000
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 START_DATE = datetime.datetime(
-    2023, 1, 1, 0, 0, 0).astimezone(datetime.timezone.utc)
+    2024, 1, 1, 0, 0, 0).astimezone(datetime.timezone.utc)
 
 # Cache stats
 cache_hits = 0
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     df = df.dropna(how='any')
 
     # Remove rows where the date is before the start date
-    df[DATE_COLUMN] = pd.to_datetime(df[DATE_COLUMN], format=DATE_FORMAT)
+    df[DATE_COLUMN] = pd.to_datetime(df[DATE_COLUMN], format='ISO8601')
     df = df[df[DATE_COLUMN] > START_DATE]
 
     # Remove rows where the play duration is less than 10 seconds
@@ -115,7 +116,13 @@ if __name__ == '__main__':
     z = total_play_time / 60000
     k = 0.9
     # Minutes needed to hit 90% of Taylor Swift play time: (kz - y) / (1 - k)
-    print('Minutes needed to hit 90% of Taylor Swift play time: ', round((k * z - y) / (1 - k), 1))
+
+    minutes_needed = max(0, round((k * z - y) / (1 - k), 1))
+    if minutes_needed == 0:
+        init()
+        print(Fore.GREEN + '90% Taylor Swift minutes achieved!' + Fore.RESET)
+    else:
+        print('Minutes needed to hit 90% of Taylor Swift play time:', minutes_needed)
     print()
 
     # Find the top 5 albums by play time

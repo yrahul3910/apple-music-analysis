@@ -14,10 +14,10 @@ DATE_COLUMN = 'Date Played'
 ALL_COLUMNS = [v for k, v in list(locals().items()) if k.endswith('_COLUMN')]
 
 # Hyper-parameters
-INSUFFICIENT_DURATION_MILLIS = 10000
+INSUFFICIENT_DURATION_MILLIS = 15000
 DATE_FORMAT = '%Y%m%d'
 START_DATE = datetime.datetime(
-    2023, 1, 1, 0, 0, 0)
+    2024, 1, 1, 0, 0, 0)
 
 # Cache stats
 cache_hits = 0
@@ -45,7 +45,7 @@ def get_album(track: str) -> str:
     global cache_hits, cache_misses
 
     album, cache_status = get_album_cached(track)
-        
+
     if cache_status == CACHE_HIT:
         cache_hits += 1
     else:
@@ -114,7 +114,8 @@ if __name__ == '__main__':
     z = total_play_time / 60000
     k = 0.9
     # Minutes needed to hit 90% of Taylor Swift play time: (kz - y) / (1 - k)
-    print('Minutes needed to hit 90% of Taylor Swift play time: ', round((k * z - y) / (1 - k), 1))
+    print('Minutes needed to hit 90% of Taylor Swift play time: ',
+          round((k * z - y) / (1 - k), 1))
     print()
 
     # Find the top 5 albums by play time
@@ -145,4 +146,5 @@ if __name__ == '__main__':
 
     if args.debug:
         print()
-        print('Cache hit%:', round(cache_hits / (cache_hits + cache_misses) * 100, 1))
+        print('Cache hit%:', round(cache_hits /
+              (cache_hits + cache_misses) * 100, 1))

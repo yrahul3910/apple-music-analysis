@@ -28,6 +28,7 @@ def get_title(track: str) -> str:
     '''
     Returns the title of a track, without the artist
     '''
+    track = track.replace("’", "'")
     if '-' not in track:
         return track
 

@@ -68,6 +68,8 @@ def normalize_ts_albums(track: str, album: str) -> str:
 
 
 def get_album_cached(track: str) -> List[str]:
+    track = track.replace("’", "'")
+
     # Handle Taylor Swift tracks
     if 'Taylor Swift' in track:
         parsed = parse_taylor_track(track.split(' - ')[1].strip())

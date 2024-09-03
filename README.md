@@ -4,6 +4,8 @@ This repository contains code to analyze the data from Apple Music data requests
 
 Note: The `v1/` directory contains code for an older version of the Apple Music data, but is archived in case it proves useful later on. The files in the root directory are current.
 
+**Updated 2024:** It seems like `v1/` is more accurate (or at least, closer to what Apple Music Replay provides). I don't know why the discrepancy exists, but if you're trying to get a specific metric (like your Taylor%) to some goal, you should probably keep use `v1/` to keep track.
+
 ## Requirements
 
 * Python (this repo is tested on 3.11)

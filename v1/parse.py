@@ -3,7 +3,7 @@ import datetime
 import warnings
 
 import pandas as pd
-from colorama import init, Fore
+from colorama import Fore, init
 
 from get_album import CACHE_HIT, parse_unknown_album
 
@@ -108,6 +108,7 @@ if __name__ == '__main__':
         'Percentage': (artist_play_time.values / total_play_time * 100).round(1)
     }).head(5)
     print('Top 5 artists by play time:')
+    top_artists_df.index += 1
     print(top_artists_df)
     print()
 
@@ -135,6 +136,7 @@ if __name__ == '__main__':
         'Play Time (h)': (album_play_time.values / (1000 * 60 * 60)).round(1)
     }).head(5)
     print('Top 5 albums by play time:')
+    top_albums_df.index += 1
     print(top_albums_df)
     print()
 
@@ -149,6 +151,7 @@ if __name__ == '__main__':
         'Play Time (min)': (song_play_time.values / (1000 * 60)).round(1)
     }).head(10)
     print('Top 10 songs by play time:')
+    top_songs_df.index += 1
     print(top_songs_df)
 
     if args.debug:
